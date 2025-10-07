@@ -2,6 +2,31 @@
 
 A production-ready Reinforcement Learning system for malaria prediction with continuous learning capabilities, built on Databricks.
 
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io)
+
+---
+
+## 🚀 Quick Deploy Streamlit App
+
+**Deploy the web interface in 2 minutes:**
+
+1. Go to [share.streamlit.io](https://share.streamlit.io)
+2. Sign in with GitHub
+3. Click **"New app"**
+4. Enter:
+   - Repository: `eHealthAfrica/malaria_clinical_trials`
+   - Branch: `main`
+   - Main file path: `streamlit_app/app.py`
+5. Add secrets (Advanced settings):
+   ```toml
+   DATABRICKS_SERVER_HOSTNAME = "your-hostname.gcp.databricks.com"
+   DATABRICKS_HTTP_PATH = "/sql/1.0/warehouses/your-warehouse-id"
+   DATABRICKS_TOKEN = "your-access-token"
+   ```
+6. Click **Deploy!**
+
+---
+
 ## 📋 Overview
 
 This system uses Reinforcement Learning (Contextual Bandits) to predict malaria cases based on patient symptoms. The model continuously learns from clinical trial feedback, improving its accuracy over time.
