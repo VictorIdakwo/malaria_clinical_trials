@@ -230,7 +230,18 @@ def submit_feedback(prediction_id, actual_result):
 
 # Sidebar
 with st.sidebar:
-    st.image("eHA-logo-blue_320x132.png", width=200)
+    # Display logo (handle both local and cloud deployment)
+    logo_path = os.path.join(os.path.dirname(__file__), "eHA-logo-blue_320x132.png")
+    if os.path.exists(logo_path):
+        st.image(logo_path, width=200)
+    else:
+        # Fallback: try relative path
+        try:
+            st.image("eHA-logo-blue_320x132.png", width=200)
+        except:
+            # If logo not found, show text instead
+            st.markdown("### 🏥 eHealth Africa")
+    
     st.title("🦟 Malaria Assistant")
     st.markdown("---")
     
