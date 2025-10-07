@@ -230,7 +230,7 @@ def submit_feedback(prediction_id, actual_result):
 
 # Sidebar
 with st.sidebar:
-    st.image("https://via.placeholder.com/150x150.png?text=eHealth", width=150)
+    st.image("eHA-logo-blue_320x132.png", width=200)
     st.title("🦟 Malaria Assistant")
     st.markdown("---")
     
