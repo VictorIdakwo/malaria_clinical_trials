@@ -1,0 +1,43 @@
+# Databricks Asset Bundle Configuration
+bundle:
+  name: malaria_rl_clinical_trial
+
+include:
+  - resources/*.yml
+
+variables:
+  catalog:
+    description: Unity Catalog name
+    default: eha
+  
+  schema:
+    description: Schema name for tables
+    default: malaria_catalog
+  
+  volume:
+    description: Volume name for model storage
+    default: clinical_trial
+  
+  notification_email:
+    description: Email for job notifications
+    default: victor.idakwo@ehealthnigeria.org
+  
+  service_principal_name:
+    description: Service principal for production deployment
+    default: ""
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://1233387161743825.5.gcp.databricks.com
+    
+  prod:
+    mode: production
+    workspace:
+      host: https://1233387161743825.5.gcp.databricks.com
+      root_path: /Workspace/prod/malaria_rl_clinical_trial
+    
+    run_as:
+      service_principal_name: ${var.service_principal_name}

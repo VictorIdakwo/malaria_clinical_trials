@@ -1,0 +1,108 @@
+# Job configurations for Malaria RL Clinical Trial System
+
+resources:
+  jobs:
+    malaria_rl_training_job:
+      name: "Malaria_RL_Training_${bundle.environment}"
+      
+      job_clusters:
+        - job_cluster_key: "ml_cluster"
+          new_cluster:
+            spark_version: "17.0.x-scala2.13"
+            node_type_id: "n2-highmem-4"
+            num_workers: 0
+            data_security_mode: "SINGLE_USER"
+            spark_conf:
+              "spark.databricks.cluster.profile": "singleNode"
+              "spark.master": "local[*]"
+              "spark.databricks.delta.preview.enabled": "true"
+              "spark.databricks.delta.properties.defaults.enableChangeDataFeed": "true"
+            custom_tags:
+              ResourceClass: "SingleNode"
+      
+      tasks:
+        - task_key: "data_preparation"
+          job_cluster_key: "ml_cluster"
+          notebook_task:
+            notebook_path: "../notebooks/01_data_preparation.py"
+            source: WORKSPACE
+          timeout_seconds: 3600
+          max_retries: 2
+          
+        - task_key: "train_initial_model"
+          depends_on:
+            - task_key: "data_preparation"
+          job_cluster_key: "ml_cluster"
+          notebook_task:
+            notebook_path: "../notebooks/02_train_rl_model.py"
+            source: WORKSPACE
+          timeout_seconds: 3600
+          max_retries: 2
+          
+        - task_key: "continuous_learning"
+          depends_on:
+            - task_key: "train_initial_model"
+          job_cluster_key: "ml_cluster"
+          notebook_task:
+            notebook_path: "../notebooks/04_continuous_learning.py"
+            source: WORKSPACE
+          timeout_seconds: 3600
+          max_retries: 1
+      
+      schedule:
+        quartz_cron_expression: "0 0 2 * * ?"
+        timezone_id: "Africa/Lagos"
+        pause_status: UNPAUSED
+      
+      email_notifications:
+        on_success:
+          - "${var.notification_email}"
+        on_failure:
+          - "${var.notification_email}"
+      
+      max_concurrent_runs: 1
+      
+      tags:
+        project: "malaria_clinical_trial"
+        environment: "${bundle.environment}"
+        team: "data_science"
+    
+    malaria_model_evaluation:
+      name: "Malaria_Model_Evaluation_${bundle.environment}"
+      
+      job_clusters:
+        - job_cluster_key: "eval_cluster"
+          new_cluster:
+            spark_version: "17.0.x-scala2.13"
+            node_type_id: "n2-highmem-4"
+            num_workers: 0
+            data_security_mode: "SINGLE_USER"
+            spark_conf:
+              "spark.databricks.cluster.profile": "singleNode"
+              "spark.master": "local[*]"
+            custom_tags:
+              ResourceClass: "SingleNode"
+      
+      tasks:
+        - task_key: "evaluate_model_performance"
+          job_cluster_key: "eval_cluster"
+          notebook_task:
+            notebook_path: "../notebooks/04_continuous_learning.py"
+            source: WORKSPACE
+            base_parameters:
+              evaluation_only: "true"
+          timeout_seconds: 1800
+      
+      schedule:
+        quartz_cron_expression: "0 0 */6 ? * *"  # Every 6 hours
+        timezone_id: "Africa/Lagos"
+        pause_status: PAUSED  # Start paused, enable when needed
+      
+      tags:
+        project: "malaria_clinical_trial"
+        environment: "${bundle.environment}"
+        type: "evaluation"
+  
+  experiments:
+    malaria_rl_experiment:
+      name: "/Shared/malaria_rl_experiment"
