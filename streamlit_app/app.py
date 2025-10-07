@@ -79,16 +79,23 @@ SYMPTOM_LABELS = {
 def get_databricks_connection():
     """Establish connection to Databricks"""
     try:
-        # Load environment variables
-        from dotenv import load_dotenv
-        load_dotenv()
-        
-        server_hostname = os.getenv("DATABRICKS_SERVER_HOSTNAME")
-        http_path = os.getenv("DATABRICKS_HTTP_PATH")
-        access_token = os.getenv("DATABRICKS_TOKEN")
+        # Try to get credentials from Streamlit secrets first (for Cloud deployment)
+        # Then fall back to .env file (for local development)
+        try:
+            server_hostname = st.secrets["DATABRICKS_SERVER_HOSTNAME"]
+            http_path = st.secrets["DATABRICKS_HTTP_PATH"]
+            access_token = st.secrets["DATABRICKS_TOKEN"]
+        except (FileNotFoundError, KeyError):
+            # Fall back to environment variables
+            from dotenv import load_dotenv
+            load_dotenv()
+            
+            server_hostname = os.getenv("DATABRICKS_SERVER_HOSTNAME")
+            http_path = os.getenv("DATABRICKS_HTTP_PATH")
+            access_token = os.getenv("DATABRICKS_TOKEN")
         
         if not all([server_hostname, http_path, access_token]):
-            st.error("⚠️ Missing Databricks credentials in .env file")
+            st.error("⚠️ Missing Databricks credentials. Please add them in Streamlit Cloud Secrets or .env file")
             return None
         
         conn = sql.connect(
