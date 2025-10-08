@@ -8,22 +8,24 @@ A production-ready Reinforcement Learning system for malaria prediction with con
 
 ## 🚀 Quick Deploy Streamlit App
 
-**Deploy the web interface in 2 minutes:**
+**Deploy the professional web interface in 2 minutes:**
 
 1. Go to [share.streamlit.io](https://share.streamlit.io)
 2. Sign in with GitHub
 3. Click **"New app"**
 4. Enter:
-   - Repository: `eHealthAfrica/malaria_clinical_trials`
+   - Repository: `VictorIdakwo/malaria_clinical_trials`
    - Branch: `main`
    - Main file path: `streamlit_app/app.py`
-5. Add secrets (Advanced settings):
+5. Add secrets (Advanced settings → Secrets):
    ```toml
    DATABRICKS_SERVER_HOSTNAME = "your-hostname.gcp.databricks.com"
    DATABRICKS_HTTP_PATH = "/sql/1.0/warehouses/your-warehouse-id"
    DATABRICKS_TOKEN = "your-access-token"
    ```
 6. Click **Deploy!**
+
+**Your app will be live in ~2 minutes!** 🎉
 
 ---
 
@@ -33,12 +35,15 @@ This system uses Reinforcement Learning (Contextual Bandits) to predict malaria 
 
 ### Key Features
 
-- **Reinforcement Learning**: Contextual bandit approach with epsilon-greedy exploration
-- **Continuous Learning**: Model automatically updates as it receives feedback from clinical trials
-- **Interactive Dashboard**: User-friendly interface for clinicians to make predictions and provide feedback
-- **Data Export**: Download clinical trial data for external analysis
-- **Model Versioning**: All models stored in Databricks Volumes with version tracking
-- **Performance Monitoring**: Real-time tracking of model accuracy and metrics
+- **🤖 Reinforcement Learning**: Contextual bandit approach with epsilon-greedy exploration
+- **🔄 Dual-Threshold Retraining**: Fast-track (25 daily samples) OR standard (50 total samples) triggers
+- **🎨 Professional Web Interface**: Modern clinical UI with gradient styling and responsive design
+- **📊 Interactive Dashboards**: Multiple interfaces (Streamlit Cloud, Databricks notebook, SQL dashboards)
+- **⚡ Real-time Predictions**: Instant malaria risk assessment (<2 seconds)
+- **📝 Clinical Feedback Loop**: Easy feedback submission with auto-filled prediction IDs
+- **🗂️ Model Versioning**: All models stored in Databricks Volumes with complete version tracking
+- **📈 Performance Monitoring**: Real-time tracking of accuracy, precision, recall, and F1-score
+- **🔐 Secure**: Unity Catalog permissions, encrypted data, no PHI storage
 
 ## 🏗️ Architecture
 
@@ -49,10 +54,26 @@ Clinical_Reinforcement_learning/
 ├── notebooks/
 │   ├── 01_data_preparation.py         # Data loading and preprocessing
 │   ├── 02_train_rl_model.py          # Initial RL model training
-│   ├── 03_clinical_dashboard.py      # Interactive Streamlit dashboard
-│   └── 04_continuous_learning.py     # Model update pipeline
-├── Clinical Main Data for Databricks.csv  # Training data
-└── README.md                          # This file
+│   ├── 03_clinical_dashboard.py      # Interactive dashboard (Databricks)
+│   ├── 04_continuous_learning.py     # Dual-threshold retraining pipeline
+│   ├── 05_api_service.py              # REST API service
+│   └── 06_simple_prediction_interface.py  # Databricks widget interface
+├── streamlit_app/
+│   ├── app.py                         # Professional Streamlit web app
+│   ├── requirements.txt               # Web app dependencies
+│   ├── .env.example                   # Configuration template
+│   ├── .gitignore                     # Git ignore rules
+│   ├── README.md                      # Deployment guide
+│   └── eHA-logo-blue_320x132.png     # eHealth Africa logo
+├── resources/
+│   └── jobs.yml                       # Scheduled jobs configuration
+├── dashboard_sql_queries.sql          # SQL dashboard queries
+├── Clinical Main Data for Databricks.csv  # Training data (~48,000 records)
+├── README.md                          # This file
+├── SYSTEM_OVERVIEW.md                 # Complete system documentation
+├── DEPLOY_NOW.md                      # Quick deployment guide
+├── STREAMLIT_DEPLOYMENT.md            # Streamlit app deployment
+└── CREATE_DASHBOARD.md                # SQL dashboard setup guide
 ```
 
 ## 🚀 Quick Start
@@ -142,40 +163,61 @@ Clinical_Reinforcement_learning/
 - System calculates reward (+1 correct, -1 incorrect)
 - Model learns from feedback
 
-### 4. Continuous Learning
-- Scheduled job checks for new feedback
-- Model retrained when sufficient feedback collected (≥50 samples)
-- Only updates production model if accuracy improves (≥1%)
-- Old models preserved in version history
+### 4. Continuous Learning (Dual-Threshold System)
+- **Daily automated job** runs at 2:00 AM
+- **Fast-track retraining**: ≥25 feedback samples in last 24 hours → Immediate retrain
+- **Standard retraining**: ≥50 total feedback samples → Quality-focused retrain
+- **Smart deployment**: Only updates if accuracy improves ≥1%
+- **Version control**: All model versions preserved in Databricks Volumes
 
-## 📱 Dashboard Features
+**Benefits:**
+- 🚨 Rapid response to disease outbreaks (1-2 days)
+- 📊 Quality updates during normal periods (10-15 days)
+- 🎯 Adapts to clinic activity levels automatically
 
-### 🩺 New Prediction Tab
-- Enter patient ID and symptoms
-- Get real-time malaria prediction
-- View confidence scores and probability gauge
+## 📱 User Interfaces
 
-### 📊 Prediction History Tab
-- View all predictions with timestamps
-- Filter by pending/confirmed results
-- Track model accuracy over time
+### 🌐 Streamlit Web App (Recommended)
+**Professional clinical interface deployed on Streamlit Cloud**
 
-### ✅ Enter Test Results Tab
-- Submit actual laboratory results
-- Provide feedback for model learning
-- See if model was correct
+#### 🏥 Make Prediction Page
+- **Modern UI**: Purple gradient header, card-based design
+- **Patient Info**: Auto-generated IDs, date picker
+- **Symptom Assessment**: Organized primary/secondary symptoms
+- **Smart Validation**: Button disabled until symptoms selected
+- **Live Counter**: Shows number of symptoms selected
+- **Professional Results**: Risk level, confidence, clinical recommendations
+- **Prediction ID**: Prominently displayed for feedback submission
 
-### 📈 Model Performance Tab
-- Real-time accuracy metrics
+#### 📝 Submit Feedback Page
+- **Auto-filled ID**: From recent prediction
+- **Simple Interface**: Radio buttons for test results
+- **Progress Tracking**: Shows samples until next retrain (25 or 50)
+- **Progress Bar**: Visual feedback collection status
+- **Recent Predictions**: Table of pending feedback
+
+#### 📊 Dashboard Page
+- **KPI Cards**: Accuracy, precision, recall, F1-score
+- **Statistics**: Total predictions, positive cases, feedback count
+- **Recent Data**: Last 20 predictions with actual results
+
+#### ⚙️ Settings Page
+- **Connection Test**: Verify Databricks connectivity
+- **Configuration**: View catalog, schema, volume settings
+- **System Info**: Current model version, database status
+
+### 🔷 Databricks Notebook Dashboard
+**Alternative interface within Databricks workspace**
+- Widget-based interaction
+- Direct database access
+- Same prediction/feedback functionality
+
+### 📊 SQL Dashboards
+**Interactive visualizations in Databricks SQL**
+- Model performance trends
+- Prediction statistics
+- Symptom analysis
 - Confusion matrix visualization
-- Symptom correlation analysis
-- Performance trends
-
-### 💾 Export Data Tab
-- Download predictions as CSV
-- Filter by date range
-- Include/exclude symptom details
-- Export statistics
 
 ## 🔧 Configuration
 
@@ -305,29 +347,70 @@ print(result)
 4. Test thoroughly
 5. Submit a pull request
 
+## 📚 Documentation
+
+Complete documentation is available:
+
+- **[SYSTEM_OVERVIEW.md](SYSTEM_OVERVIEW.md)** - Comprehensive system documentation (50+ pages)
+- **[DEPLOY_NOW.md](DEPLOY_NOW.md)** - Quick deployment guide
+- **[STREAMLIT_DEPLOYMENT.md](STREAMLIT_DEPLOYMENT.md)** - Streamlit Cloud deployment
+- **[CREATE_DASHBOARD.md](CREATE_DASHBOARD.md)** - SQL dashboard setup
+- **[streamlit_app/README.md](streamlit_app/README.md)** - Web app documentation
+
+## 🔗 Quick Links
+
+- **GitHub Repository**: https://github.com/VictorIdakwo/malaria_clinical_trials
+- **Streamlit Cloud**: Deploy at [share.streamlit.io](https://share.streamlit.io)
+- **Databricks**: Configure Unity Catalog and deploy bundle
+- **Issues**: Report bugs or request features on GitHub
+
 ## 📝 License
 
 This project is licensed under the MIT License.
 
 ## 👥 Authors
 
-- eHealth Africa - Malaria Disease Modelling Team
+**eHealth Africa** - Malaria Disease Modelling Team
+- Clinical Decision Support Systems
+- Machine Learning & AI Research
+- Public Health Technology
 
 ## 📞 Support
 
 For issues or questions:
-- Create an issue in the repository
-- Contact the data science team
-- Review Databricks documentation
+- 📧 **Email**: Contact the data science team
+- 🐛 **GitHub Issues**: https://github.com/VictorIdakwo/malaria_clinical_trials/issues
+- 📖 **Documentation**: Review SYSTEM_OVERVIEW.md for detailed information
+- 🆘 **Databricks Support**: For platform-specific issues
 
 ## 🎉 Acknowledgments
 
-- Clinical staff providing feedback
-- eHealth Africa for project support
-- Databricks for platform capabilities
+- **Clinical staff** providing invaluable feedback for model improvement
+- **eHealth Africa** for project support and resources
+- **Databricks** for unified data and AI platform capabilities
+- **Streamlit** for easy web app deployment
+- **Open-source community** for ML libraries and tools
 
 ---
 
-**Version**: 1.0.0  
-**Last Updated**: 2025-10-07  
-**Status**: Production Ready ✅
+## 📊 Project Status
+
+**Version**: 2.0.0  
+**Last Updated**: October 8, 2025  
+**Status**: ✅ Production Ready  
+**Features**: Dual-threshold retraining, Professional UI, Auto-deployment
+
+**Key Improvements (v2.0)**:
+- ✅ Dual-threshold retraining system (fast-track + standard)
+- ✅ Professional Streamlit web interface with modern design
+- ✅ Auto-filled prediction IDs for seamless feedback
+- ✅ Progress tracking for retraining thresholds
+- ✅ Clinical recommendations based on predictions
+- ✅ eHealth Africa branding integrated
+- ✅ Comprehensive documentation (SYSTEM_OVERVIEW.md)
+
+---
+
+**⭐ Star this repository if you find it useful!**  
+**🍴 Fork it to customize for your facility!**  
+**🤝 Contribute to improve malaria diagnosis worldwide!**
