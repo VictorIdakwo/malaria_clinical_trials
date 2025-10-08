@@ -27,12 +27,13 @@ st.set_page_config(
 st.markdown("""
 <style>
     .main-header {
-        font-size: 3.5rem;
+        font-size: 4.5rem;
         font-weight: bold;
         color: #1f77b4;
         text-align: center;
         margin-bottom: 2rem;
         margin-top: 1rem;
+        line-height: 1.2;
     }
     .prediction-box {
         padding: 2rem;
