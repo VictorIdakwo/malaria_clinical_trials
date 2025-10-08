@@ -27,27 +27,50 @@ st.set_page_config(
 st.markdown("""
 <style>
     .main-header {
-        font-size: 4.5rem;
-        font-weight: bold;
-        color: #1f77b4;
+        font-size: 6rem;
+        font-weight: 800;
+        color: #0066cc;
         text-align: center;
         margin-bottom: 2rem;
-        margin-top: 1rem;
-        line-height: 1.2;
+        margin-top: 0.5rem;
+        line-height: 1.1;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
     }
     .prediction-box {
         padding: 2rem;
-        border-radius: 10px;
-        border: 2px solid #ddd;
+        border-radius: 15px;
+        border: 3px solid #ddd;
         margin: 1rem 0;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
     .positive {
-        background-color: #ffebee;
+        background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
         border-color: #ef5350;
     }
     .negative {
-        background-color: #e8f5e9;
+        background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
         border-color: #66bb6a;
+    }
+    .info-card {
+        background-color: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 10px;
+        border-left: 5px solid #0066cc;
+        margin: 1rem 0;
+    }
+    .symptom-section {
+        background-color: white;
+        padding: 2rem;
+        border-radius: 10px;
+        border: 1px solid #e0e0e0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        margin: 1rem 0;
+    }
+    .result-card {
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        margin: 1rem 0;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -265,18 +288,63 @@ st.markdown('<p class="main-header">🦟 Malaria Clinical Trial Assistant</p>', 
 
 # ==================== PAGE 1: MAKE PREDICTION ====================
 if page == "🏥 Make Prediction":
-    st.header("🏥 Patient Symptom Assessment")
+    # Page header with professional styling
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                padding: 2rem; border-radius: 15px; margin-bottom: 2rem;">
+        <h1 style="color: white; text-align: center; margin: 0; font-size: 2.5rem;">
+            🏥 Clinical Malaria Risk Assessment
+        </h1>
+        <p style="color: #f0f0f0; text-align: center; margin-top: 0.5rem; font-size: 1.1rem;">
+            Evidence-based prediction tool for malaria diagnosis
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
     
-    col1, col2 = st.columns([2, 1])
+    # Instructions card
+    st.markdown("""
+    <div class="info-card">
+        <h4>📋 Instructions</h4>
+        <p><strong>1.</strong> Enter patient identification information</p>
+        <p><strong>2.</strong> Check all symptoms present in the patient</p>
+        <p><strong>3.</strong> Click "Get Prediction" to receive risk assessment</p>
+        <p><strong>4.</strong> Save the Prediction ID for feedback submission after clinical testing</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    col1, col2 = st.columns([1.5, 1])
     
     with col1:
-        st.subheader("Patient Information")
-        patient_id = st.text_input("Patient ID", placeholder="Enter patient ID or leave blank for auto-generation")
+        # Patient Information Section
+        st.markdown("### 👤 Patient Information")
+        st.markdown('<div class="symptom-section">', unsafe_allow_html=True)
+        
+        col_id, col_date = st.columns(2)
+        with col_id:
+            patient_id = st.text_input(
+                "Patient ID *", 
+                placeholder="e.g., PT-2025-001",
+                help="Enter unique patient identifier or leave blank for auto-generation"
+            )
+        
+        with col_date:
+            assessment_date = st.date_input(
+                "Assessment Date",
+                value=datetime.now(),
+                help="Date of symptom assessment"
+            )
         
         if not patient_id:
-            patient_id = f"PATIENT_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+            patient_id = f"PT-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
+            st.caption(f"Auto-generated ID: **{patient_id}**")
         
-        st.subheader("Symptoms Checklist")
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+        # Symptoms Section with better styling
+        st.markdown("### 🩺 Clinical Symptoms Assessment")
+        st.markdown('<div class="symptom-section">', unsafe_allow_html=True)
+        st.markdown("**Select all symptoms present in the patient:**")
+        st.markdown("---")
         
         symptoms = {}
         
@@ -287,14 +355,29 @@ if page == "🏥 Make Prediction":
         mid = len(symptoms_list) // 2
         
         with col_a:
+            st.markdown("**Primary Symptoms:**")
             for symptom, label in symptoms_list[:mid]:
                 symptoms[symptom] = 1 if st.checkbox(label, key=symptom) else 0
         
         with col_b:
+            st.markdown("**Secondary Symptoms:**")
             for symptom, label in symptoms_list[mid:]:
                 symptoms[symptom] = 1 if st.checkbox(label, key=symptom) else 0
         
-        if st.button("🔍 Get Prediction", type="primary", use_container_width=True):
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+        # Action button with better styling
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        # Count selected symptoms
+        symptoms_selected = sum(symptoms.values()) if symptoms else 0
+        
+        if symptoms_selected > 0:
+            st.success(f"✅ {symptoms_selected} symptom(s) selected")
+        else:
+            st.info("ℹ️ Please select at least one symptom to proceed")
+        
+        if st.button("🔍 Analyze & Get Prediction", type="primary", use_container_width=True, disabled=(symptoms_selected == 0)):
             # Simulate prediction (replace with actual model)
             X = np.array([[symptoms[col] for col in SYMPTOM_COLS]])
             
@@ -343,7 +426,7 @@ if page == "🏥 Make Prediction":
             }
     
     with col2:
-        st.subheader("Prediction Result")
+        st.markdown("### 📊 Risk Assessment Results")
         
         if 'last_prediction' in st.session_state:
             pred = st.session_state['last_prediction']
@@ -351,33 +434,92 @@ if page == "🏥 Make Prediction":
             result_class = "positive" if pred['prediction'] == 1 else "negative"
             result_text = "POSITIVE" if pred['prediction'] == 1 else "NEGATIVE"
             result_emoji = "🔴" if pred['prediction'] == 1 else "✅"
+            risk_level = "HIGH RISK" if pred['prediction'] == 1 else "LOW RISK"
             
+            # Professional results card
             st.markdown(f"""
-            <div class="prediction-box {result_class}">
-                <h2 style="text-align: center;">{result_emoji} {result_text}</h2>
-                <h3 style="text-align: center;">for Malaria</h3>
-                <p style="text-align: center; font-size: 1.2rem;">
-                    Confidence: <strong>{pred['confidence']*100:.1f}%</strong>
-                </p>
+            <div class="result-card {result_class}">
+                <h3 style="text-align: center; margin: 0; color: #333;">
+                    Malaria Risk Assessment
+                </h3>
+                <hr style="margin: 1rem 0;">
+                <div style="text-align: center; padding: 1.5rem 0;">
+                    <div style="font-size: 3rem; margin-bottom: 0.5rem;">
+                        {result_emoji}
+                    </div>
+                    <h1 style="margin: 0.5rem 0; font-size: 2.5rem; font-weight: bold;">
+                        {result_text}
+                    </h1>
+                    <p style="font-size: 1.3rem; color: #666; margin: 0.5rem 0;">
+                        {risk_level}
+                    </p>
+                    <div style="background-color: rgba(255,255,255,0.5); padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                        <p style="margin: 0; font-size: 1.1rem; color: #333;">
+                            <strong>Confidence Level</strong>
+                        </p>
+                        <p style="margin: 0.5rem 0 0 0; font-size: 2rem; font-weight: bold; color: #0066cc;">
+                            {pred['confidence']*100:.1f}%
+                        </p>
+                    </div>
+                </div>
             </div>
             """, unsafe_allow_html=True)
             
-            st.success(f"✅ Prediction saved for {pred['patient_id']}")
+            # Clinical recommendation
+            if pred['prediction'] == 1:
+                st.error("""
+                **⚕️ Clinical Recommendation:**
+                - Perform confirmatory diagnostic test (microscopy/RDT)
+                - Consider antimalarial treatment if confirmed
+                - Monitor patient closely
+                """)
+            else:
+                st.success("""
+                **⚕️ Clinical Recommendation:**
+                - Low malaria risk indicated
+                - Consider alternative diagnoses
+                - Confirmatory testing recommended if symptoms persist
+                """)
             
-            # Display Prediction ID prominently
-            st.markdown("### 📋 Prediction ID")
+            # Patient & Prediction Details
+            st.markdown("---")
+            st.markdown("**📋 Assessment Details:**")
+            
+            col_detail1, col_detail2 = st.columns(2)
+            with col_detail1:
+                st.metric("Patient ID", pred['patient_id'])
+            with col_detail2:
+                st.metric("Timestamp", pred['timestamp'].strftime("%H:%M:%S"))
+            
+            # Prediction ID Section
+            st.markdown("---")
+            st.markdown("**🔑 Prediction Reference ID:**")
             st.code(pred['prediction_id'], language=None)
-            
-            # Copy button hint
-            st.caption("👆 Click to select, then copy (Ctrl+C) for feedback submission")
+            st.caption("💡 Save this ID for feedback submission after clinical testing")
             
             # Database save status
             if pred.get('db_saved', False):
-                st.success("💾 Saved to database")
+                st.success("✅ Data successfully saved to database")
             else:
-                st.warning("⚠️ Not saved to database (working in demo mode)")
+                st.info("ℹ️ Running in demo mode (database not connected)")
             
-            st.info("⚠️ **Next Step:** After clinical test, submit actual result in 'Submit Feedback' page using the ID above")
+            # Next steps
+            st.markdown("---")
+            st.info("""
+            **📝 Next Steps:**
+            1. Perform confirmatory clinical test (microscopy/RDT)
+            2. Record actual test results in **'Submit Feedback'** page
+            3. Use the Prediction ID above for feedback submission
+            """)
+        else:
+            # Placeholder when no prediction yet
+            st.markdown("""
+            <div style="background-color: #f8f9fa; padding: 3rem; border-radius: 15px; text-align: center; margin-top: 2rem;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">🔬</div>
+                <h3 style="color: #666; margin-bottom: 1rem;">No Assessment Yet</h3>
+                <p style="color: #888;">Complete the symptom assessment and click<br/>"Analyze & Get Prediction" to see results here.</p>
+            </div>
+            """, unsafe_allow_html=True)
 
 # ==================== PAGE 2: SUBMIT FEEDBACK ====================
 elif page == "📝 Submit Feedback":
