@@ -2,8 +2,15 @@
 # MAGIC %md
 # MAGIC # Continuous Learning - Model Update Pipeline
 # MAGIC 
-# MAGIC This notebook implements the continuous learning loop:
+# MAGIC This notebook implements the continuous learning loop with **dual-threshold retraining**:
+# MAGIC 
+# MAGIC ## Retraining Triggers:
+# MAGIC - **Fast-track**: ≥25 feedback samples in last 24 hours → Immediate retraining
+# MAGIC - **Standard**: ≥50 total feedback samples → Regular retraining
+# MAGIC 
+# MAGIC ## Process:
 # MAGIC - Collects feedback from clinical trials
+# MAGIC - Checks retraining criteria (daily OR total)
 # MAGIC - Retrains the model with new data
 # MAGIC - Evaluates improvement
 # MAGIC - Updates the model in production if performance improves
@@ -41,8 +48,9 @@ SYMPTOM_COLS = [
     "vomiting", "nausea", "diarrhea"
 ]
 
-# Minimum feedback samples required for retraining
-MIN_FEEDBACK_SAMPLES = 50
+# Retraining thresholds
+MIN_FEEDBACK_SAMPLES = 50  # Total feedback threshold
+DAILY_FAST_TRACK_THRESHOLD = 25  # Daily feedback for immediate retraining
 
 # COMMAND ----------
 
@@ -89,14 +97,49 @@ feedback_df = spark.table(f"{CATALOG}.{SCHEMA}.predictions") \
 
 feedback_count = feedback_df.count()
 
-print(f"Total feedback samples available: {feedback_count}")
+# Check feedback collected in the last 24 hours (fast-track retraining)
+from pyspark.sql.functions import current_timestamp, expr
+daily_feedback_df = feedback_df.filter(
+    col("feedback_timestamp") >= expr("current_timestamp() - INTERVAL 1 DAY")
+)
+daily_feedback_count = daily_feedback_df.count()
 
-if feedback_count < MIN_FEEDBACK_SAMPLES:
-    print(f"⚠️ Insufficient feedback samples for retraining (need at least {MIN_FEEDBACK_SAMPLES})")
-    print("Exiting without retraining...")
+print(f"📊 Feedback Summary:")
+print(f"   Total feedback samples: {feedback_count}")
+print(f"   Feedback in last 24 hours: {daily_feedback_count}")
+print(f"")
+print(f"🎯 Retraining Criteria:")
+print(f"   • Fast-track: {daily_feedback_count}/{DAILY_FAST_TRACK_THRESHOLD} daily samples")
+print(f"   • Standard: {feedback_count}/{MIN_FEEDBACK_SAMPLES} total samples")
+
+# Determine if retraining should proceed
+should_retrain = False
+retrain_reason = ""
+
+if daily_feedback_count >= DAILY_FAST_TRACK_THRESHOLD:
+    should_retrain = True
+    retrain_reason = f"Fast-track: {daily_feedback_count} samples collected today (≥{DAILY_FAST_TRACK_THRESHOLD})"
+    print(f"")
+    print(f"✅ {retrain_reason}")
+    print(f"🚀 Initiating fast-track retraining...")
+    
+elif feedback_count >= MIN_FEEDBACK_SAMPLES:
+    should_retrain = True
+    retrain_reason = f"Standard: {feedback_count} total samples collected (≥{MIN_FEEDBACK_SAMPLES})"
+    print(f"")
+    print(f"✅ {retrain_reason}")
+    print(f"🔄 Initiating standard retraining...")
+    
+else:
+    print(f"")
+    print(f"⚠️ Retraining criteria not met:")
+    print(f"   • Need {DAILY_FAST_TRACK_THRESHOLD - daily_feedback_count} more daily samples for fast-track")
+    print(f"   OR")
+    print(f"   • Need {MIN_FEEDBACK_SAMPLES - feedback_count} more total samples for standard retrain")
+    print(f"⏸️ Skipping retraining...")
     dbutils.notebook.exit(json.dumps({
         "status": "skipped",
-        "reason": f"Insufficient feedback samples: {feedback_count} < {MIN_FEEDBACK_SAMPLES}"
+        "reason": f"Insufficient feedback - Daily: {daily_feedback_count}/{DAILY_FAST_TRACK_THRESHOLD}, Total: {feedback_count}/{MIN_FEEDBACK_SAMPLES}"
     }))
 
 # COMMAND ----------
