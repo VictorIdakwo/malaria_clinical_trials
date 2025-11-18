@@ -207,7 +207,7 @@ def save_prediction(patient_id, symptoms, prediction, confidence, model_version)
     """
     
     cursor.execute(query)
-    conn.commit()
+    # Note: Databricks SQL Warehouse auto-commits, no explicit commit needed
     
     return prediction_id
 
@@ -228,7 +228,7 @@ def submit_feedback(prediction_id, actual_result):
     """
     
     cursor.execute(query)
-    conn.commit()
+    # Note: Databricks SQL Warehouse auto-commits, no explicit commit needed
 
 # ==================== STREAMLIT APP ====================
 
@@ -318,7 +318,7 @@ if page == "🏥 Make Prediction":
         if symptoms_selected > 0:
             st.caption(f"✅ **{symptoms_selected} symptom(s) selected**")
         
-        if st.button("🔍 Get Malaria Prediction", type="primary", use_container_width=True, disabled=(symptoms_selected == 0)):
+        if st.button("🔍 Get Malaria Prediction", type="primary", width="stretch", disabled=(symptoms_selected == 0)):
             # Simulate prediction (replace with actual model)
             X = np.array([[symptoms[col] for col in SYMPTOM_COLS]])
             
@@ -347,7 +347,7 @@ if page == "🏥 Make Prediction":
                     """
                     
                     cursor.execute(query)
-                    conn.commit()
+                    # Note: Databricks SQL Warehouse auto-commits, no explicit commit needed
                     db_saved = True
                 else:
                     db_saved = False
@@ -436,7 +436,7 @@ elif page == "📝 Submit Feedback":
         
         actual_result = st.radio("Clinical Test Result", ["Negative (0)", "Positive (1)"])
         
-        if st.button("Submit Feedback", type="primary", use_container_width=True):
+        if st.button("Submit Feedback", type="primary", width="stretch"):
             if not prediction_id:
                 st.error("Please enter a Prediction ID")
             else:
@@ -489,7 +489,7 @@ elif page == "📝 Submit Feedback":
                 results = cursor.fetchall()
                 if results:
                     df = pd.DataFrame(results, columns=['Patient ID', 'Prediction ID', 'Predicted', 'Timestamp'])
-                    st.dataframe(df, use_container_width=True)
+                    st.dataframe(df, width="stretch")
                 else:
                     st.info("No predictions awaiting feedback")
             else:
@@ -563,7 +563,7 @@ elif page == "📊 Dashboard":
             
             results = cursor.fetchall()
             df = pd.DataFrame(results, columns=['Patient ID', 'Predicted', 'Actual', 'Confidence %', 'Timestamp'])
-            st.dataframe(df, use_container_width=True)
+            st.dataframe(df, width="stretch")
             
         except Exception as e:
             st.error(f"Error loading dashboard data: {e}")
